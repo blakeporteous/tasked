@@ -2,82 +2,74 @@
 //  EditProfileView.swift
 //  Tasked
 //
-//  Created by Blake Porteous on 18/07/2025.
+//  Rewritten for Feature 5A: text fields only (username, name, bio). Picture
+//  editing lives in EditProfilePictureView now. Reachable only from Settings.
 //
 
 import SwiftUI
-import PhotosUI
 
-@MainActor
 struct EditProfileView: View {
     @Environment(\.dismiss) var dismiss
     @StateObject var viewModel: EditProfileViewModel
-    
+
     init(user: User) {
-        self._viewModel = StateObject(wrappedValue:EditProfileViewModel(user: user))
+        self._viewModel = StateObject(wrappedValue: EditProfileViewModel(user: user))
     }
-    
+
     var body: some View {
-        VStack{
+        VStack {
             VStack {
-                HStack{
-                    Button("Cancel"){
+                HStack {
+                    Button("Cancel") {
                         dismiss()
                     }
-                    
+
                     Spacer()
-                    
+
                     Text("Edit Profile")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                    
+
                     Spacer()
-                    
+
                     Button {
                         Task {
-                            try await viewModel.updateUserData()
-                            dismiss()
+                            if await viewModel.save() {
+                                dismiss()
+                            }
                         }
                     } label: {
-                        Text("Done")
-                            .font(.subheadline)
-                            .fontWeight(.bold)
+                        if viewModel.isSaving {
+                            ProgressView()
+                        } else {
+                            Text("Done")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                        }
                     }
+                    .disabled(viewModel.isSaving)
                 }
                 .padding()
-                
+
                 Divider()
             }
-            
-            PhotosPicker(selection: $viewModel.selectedImage){
-                VStack{
-                    if let image = viewModel.profileImage {
-                        image
-                            .resizable()
-                            .clipShape(Circle())
-                            .frame(width: 80, height: 80)
-                    } else {
-                        CircularProfileImageView(user: viewModel.user, size:.large)
-                    }
-                    
-                    Text("Edit profile picture")
-                        .font(.footnote)
-                        .fontWeight(.semibold)
-                    
-                    Divider()
-                }
+
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal)
+                    .padding(.top, 4)
             }
-            .padding(.vertical, 8)
-        
+
             VStack {
+                EditProfileRowView(title: "Username", placeholder: "Enter your username...", text: $viewModel.username)
                 EditProfileRowView(title: "Name", placeholder: "Enter your name...", text: $viewModel.fullname)
-                
                 EditProfileRowView(title: "Bio", placeholder: "Enter your bio...", text: $viewModel.bio)
-                
             }
-            
+            .padding(.top, 8)
+
             Spacer()
-            
         }
     }
 }
@@ -86,14 +78,16 @@ struct EditProfileRowView: View {
     let title: String
     let placeholder: String
     @Binding var text: String
-    
+
     var body: some View {
         HStack {
-            Text (title)
+            Text(title)
                 .padding(.leading, 8)
                 .frame(width: 100, alignment: .leading)
             VStack {
                 TextField(placeholder, text: $text)
+                    .autocorrectionDisabled(title == "Username")
+                    .textInputAutocapitalization(title == "Username" ? .never : .sentences)
                 Divider()
             }
             .font(.subheadline)

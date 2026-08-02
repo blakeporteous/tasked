@@ -16,5 +16,9 @@ struct IGTextFieldModifier: ViewModifier {
             .background(Color(.systemGray6))
             .presentationCornerRadius(10)
             .padding(.horizontal, 24)
+            // Applied here so every auth field (email, username, password) gets
+            // consistent keyboard behaviour without repeating modifiers per-screen.
+            .autocorrectionDisabled(true)
+            .textInputAutocapitalization(.never)
     }
 }

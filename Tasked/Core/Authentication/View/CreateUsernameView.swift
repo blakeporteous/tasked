@@ -25,7 +25,6 @@ struct CreateUsernameView: View {
                 .padding(.horizontal, 24)
             
             TextField("Username", text: $viewModel.username)
-                .textInputAutocapitalization(.none)
                 .modifier(IGTextFieldModifier())
             
             if !viewModel.username.isEmpty {

@@ -3,24 +3,44 @@
 //  Tasked
 //
 //  Created by Blake Porteous on 20/02/2025.
+//  Updated: gates the full profile behind friendship status (Feature 5). Non-friends
+//  see PrivateProfileView instead of the header/post grid.
 //
 
 import SwiftUI
 
 struct ProfileView: View {
-    
     let user: User
-    
-    var body: some View {
-            ScrollView{
-                
-                ProfileHeaderView(user: user)
+    @State private var status: FriendshipStatus?
 
-                PostGridView(user: user)
+    var body: some View {
+        Group {
+            if let status {
+                switch status {
+                case .friends, .isCurrentUser:
+                    ScrollView {
+                        ProfileHeaderView(user: user)
+                        PostGridView(user: user)
+                    }
+                case .notFriends, .requestSent, .requestReceived:
+                    PrivateProfileView(user: user, status: status)
+                }
+            } else {
+                ProgressView()
+                    .padding(.top, 40)
             }
-            .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
         }
+        .navigationTitle("Profile")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await loadStatus()
+        }
+    }
+
+    private func loadStatus() async {
+        guard let currentUser = AuthService.shared.currentUser else { return }
+        status = (try? await FriendService.fetchStatus(with: user.id, currentUser: currentUser)) ?? .notFriends
+    }
 }
 
 #Preview {

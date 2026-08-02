@@ -2,70 +2,75 @@
 //  EditProfileViewModel.swift
 //  Tasked
 //
-//  Created by Blake Porteous on 23/07/2025.
+//  Rewritten for Feature 5A: this view model now ONLY handles text fields
+//  (username, fullname, bio). Profile picture editing moved to
+//  EditProfilePictureViewModel so the two flows can't be conflated again.
 //
 
 import Foundation
-import PhotosUI
-import SwiftUI
 import Firebase
 
 @MainActor
 class EditProfileViewModel: ObservableObject {
     @Published var user: User
-    @Published var selectedImage: PhotosPickerItem? {
-        didSet { Task {await loadImage(fromItem: selectedImage) }}
-    }
-    @Published var profileImage: Image?
-    @Published var fullname = ""
-    @Published var bio = ""
-    
-    private var uiImage: UIImage?
-    
-    init (user: User) {
+    @Published var username: String
+    @Published var fullname: String
+    @Published var bio: String
+    @Published var isSaving = false
+    @Published var errorMessage: String?
+
+    init(user: User) {
         self.user = user
-        
-        if let fullname = user.fullname {
-            self.fullname = fullname
-        }
-        
-        if let bio = user.bio {
-            self.bio = bio
-        }
+        self.username = user.username
+        self.fullname = user.fullname ?? ""
+        self.bio = user.bio ?? ""
     }
-    
-    func loadImage(fromItem item: PhotosPickerItem?) async {
-        guard let item = item else  { return }
-        
-        guard let data = try? await item.loadTransferable(type: Data.self) else { return }
-        guard let uiImage = UIImage(data: data) else { return }
-        self.uiImage = uiImage
-        self.profileImage = Image(uiImage: uiImage)
-    }
-    
-    func updateUserData() async throws {
-        
-        
-        var data = [String: Any]()
-        
-        if let uiImage = uiImage {
-            let imageUrl = try? await ImageUploader.uploadImage(image: uiImage)
-            data["profileImageUrl"] = imageUrl
+
+    /// Returns true on success so the view can dismiss.
+    func save() async -> Bool {
+        errorMessage = nil
+
+        let trimmedUsername = username.trimmingCharacters(in: .whitespaces)
+        guard !trimmedUsername.isEmpty else {
+            errorMessage = "Username can't be empty."
+            return false
         }
-        
-        
-        if !fullname.isEmpty && user.fullname != fullname {
+
+        var data: [String: Any] = [:]
+        if trimmedUsername != user.username {
+            data["username"] = trimmedUsername
+            // Keeps UserService.searchUsers working after a rename.
+            data["usernameLower"] = trimmedUsername.lowercased()
+        }
+        if fullname != (user.fullname ?? "") {
             data["fullname"] = fullname
         }
-        
-        if !bio.isEmpty && user.bio != bio {
+        if bio != (user.bio ?? "") {
             data["bio"] = bio
         }
-        
-        if !data.isEmpty {
+
+        guard !data.isEmpty else { return true } // nothing changed
+
+        isSaving = true
+        defer { isSaving = false }
+
+        do {
             try await Firestore.firestore().collection("users").document(user.id).updateData(data)
+
+            var updatedUser = user
+            updatedUser.username = trimmedUsername
+            updatedUser.fullname = fullname.isEmpty ? nil : fullname
+            updatedUser.bio = bio.isEmpty ? nil : bio
+            user = updatedUser
+
+            // Push the change up so Feed/Search/Profile all reflect it immediately
+            // without needing a fresh fetch.
+            AuthService.shared.currentUser = updatedUser
+
+            return true
+        } catch {
+            errorMessage = "Couldn't save changes: \(error.localizedDescription)"
+            return false
         }
-        
     }
-    
 }

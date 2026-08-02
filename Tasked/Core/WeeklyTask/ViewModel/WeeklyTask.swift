@@ -5,9 +5,11 @@
 
 import Foundation
 import Firebase
+import FirebaseFirestore // Necessary for @DocumentID in modern Firebase versions
 
 struct WeeklyTask: Identifiable, Hashable, Codable {
-    let id: String
+    // Corrected: Tells the decoder to populate this with the Firestore document name ("week1")
+    @DocumentID var id: String?
     var title: String
     var description: String
     var startDate: Timestamp
@@ -17,7 +19,7 @@ struct WeeklyTask: Identifiable, Hashable, Codable {
 
 extension WeeklyTask {
     static var MOCK_TASK = WeeklyTask(
-        id: NSUUID().uuidString,
+        id: UUID().uuidString, // Works seamlessly with the optional @DocumentID property wrapper
         title: "Play a round of golf",
         description: "Grab a friend and play a round this week.",
         startDate: Timestamp(),
