@@ -62,3 +62,4 @@ fastlane/screenshots/**/*.png
 fastlane/test_output
 GoogleService-Info.plist
 **/GoogleService-Info.plist
+.DS_Store
