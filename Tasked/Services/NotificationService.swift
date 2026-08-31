@@ -5,6 +5,9 @@
 //  New in this pass (Feature 4). Backs the notifications feed. Writes are fire-and-forget
 //  from the caller's point of view (a failed notification write should never block the
 //  action that triggered it, e.g. accepting a friend request).
+//  Updated (Feed engagement pass): added the "comment" notification type, fired
+//  from PostService.addComment alongside the existing "like" type fired from
+//  PostService.toggleLike.
 //
 
 import Foundation
@@ -15,6 +18,7 @@ enum NotificationType {
     static let friendRequestReceived = "friendRequestReceived"
     static let friendRequestAccepted = "friendRequestAccepted"
     static let like = "like"
+    static let comment = "comment"
 }
 
 struct NotificationService {

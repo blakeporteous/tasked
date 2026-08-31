@@ -3,6 +3,8 @@
 //  Tasked
 //
 //  Created by Blake Porteous on 17/03/2025.
+//  Updated: checks username availability against Firestore while typing
+//  (debounced in RegistrationViewModel) and blocks "Next" until it's free.
 //
 
 import SwiftUI
@@ -26,8 +28,18 @@ struct CreateUsernameView: View {
             
             TextField("Username", text: $viewModel.username)
                 .modifier(IGTextFieldModifier())
+
+            if viewModel.isCheckingUsername {
+                Text("Checking availability…")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            } else if let usernameError = viewModel.usernameError {
+                Text(usernameError)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
             
-            if !viewModel.username.isEmpty {
+            if viewModel.isUsernameValid {
                 NavigationLink {
                         CreatePasswordView()
                             .navigationBarBackButtonHidden()

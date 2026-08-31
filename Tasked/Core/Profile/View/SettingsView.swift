@@ -7,11 +7,16 @@
 //  by two distinct view models, and this is the only place either is reachable
 //  from (the profile page no longer has its own Edit Profile button).
 //
+//  Updated: added an "Account" section for changing password and deleting the
+//  account, backed by a new SettingsViewModel.
+//
 
 import SwiftUI
 
 struct SettingsView: View {
     let user: User
+    @StateObject private var viewModel = SettingsViewModel()
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         List {
@@ -25,6 +30,33 @@ struct SettingsView: View {
                     EditProfilePictureView(user: user)
                 } label: {
                     Label("Change Profile Picture", systemImage: "camera")
+                }
+            }
+
+            Section("Account") {
+                NavigationLink {
+                    ChangePasswordView()
+                } label: {
+                    Label("Change Password", systemImage: "lock.rotation")
+                }
+
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    if viewModel.isDeletingAccount {
+                        ProgressView()
+                    } else {
+                        Label("Delete Account", systemImage: "trash")
+                    }
+                }
+                .disabled(viewModel.isDeletingAccount)
+            }
+
+            if let errorMessage = viewModel.errorMessage {
+                Section {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.red)
                 }
             }
 
@@ -44,6 +76,18 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .confirmationDialog(
+            "Delete your account?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Delete Account", role: .destructive) {
+                Task { await viewModel.deleteAccount() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This permanently deletes your profile. This can't be undone.")
+        }
     }
 }
 

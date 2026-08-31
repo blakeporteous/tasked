@@ -5,6 +5,9 @@
 //  Created by Blake Porteous on 24/03/2025.
 //  Redesigned for Features 3 & 7: caption field removed (caption is automatic),
 //  cleaner layout, visible upload progress, clearer errors.
+//  Updated (Crop pass): picking a photo now opens ImageCropperView full-screen
+//  before it becomes the post's image, so every post ends up as a consistent,
+//  size-capped square instead of the raw picked photo.
 //
 
 import SwiftUI
@@ -100,6 +103,13 @@ struct UploadPostView: View {
                     Button("Cancel") {
                         viewModel.reset()
                         tabIndex = 0
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $viewModel.showCropper) {
+                if let raw = viewModel.rawPickedImage {
+                    ImageCropperView(image: raw, cropShape: .square) { cropped in
+                        viewModel.handleCropped(cropped)
                     }
                 }
             }

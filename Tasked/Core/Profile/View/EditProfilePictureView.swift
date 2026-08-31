@@ -3,6 +3,10 @@
 //  Tasked
 //
 //  New in Feature 5B: picture selection + upload only, no text fields.
+//  Updated (Crop pass): picking a photo now opens ImageCropperView full-screen
+//  (with a circular preview, matching CircularProfileImageView) before it
+//  becomes the profile picture, so every profile picture ends up as a
+//  consistent, size-capped square instead of the raw picked photo.
 //
 
 import SwiftUI
@@ -73,6 +77,13 @@ struct EditProfilePictureView: View {
             }
 
             Spacer()
+        }
+        .fullScreenCover(isPresented: $viewModel.showCropper) {
+            if let raw = viewModel.rawPickedImage {
+                ImageCropperView(image: raw, cropShape: .circle) { cropped in
+                    viewModel.handleCropped(cropped)
+                }
+            }
         }
     }
 }

@@ -5,6 +5,8 @@
 //  Created by Blake Porteous on 27/03/2025.
 //  Updated: User no longer has followersCount/followingCount; new accounts also get a
 //  usernameLower field written so UserService.searchUsers can query it.
+//  Updated: added password reset, password change, and account deletion, backing
+//  the new "Forgot Password" flow and Settings > Account screens.
 //
 
 import Foundation
@@ -46,6 +48,34 @@ class AuthService {
 
     func signOut() {
         try? Auth.auth().signOut()
+        self.userSession = nil
+        self.currentUser = nil
+    }
+
+    /// Sends a Firebase password-reset email. Used by the "Forgot Password?" flow on LoginView.
+    func resetPassword(email: String) async throws {
+        try await Auth.auth().sendPasswordReset(withEmail: email)
+    }
+
+    /// Changes the signed-in user's password. Used by ChangePasswordView.
+    @MainActor
+    func updatePassword(newPassword: String) async throws {
+        guard let user = Auth.auth().currentUser else {
+            throw NSError(domain: "AuthService", code: -1, userInfo: [NSLocalizedDescriptionKey: "You're not signed in."])
+        }
+        try await user.updatePassword(to: newPassword)
+    }
+
+    /// Deletes the signed-in user's account and Firestore profile.
+    /// NOTE: doesn't clean up the user's posts, friend requests, or notifications —
+    /// fine for now, but worth a Cloud Function pass before this ships widely.
+    @MainActor
+    func deleteAccount() async throws {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "AuthService", code: -1, userInfo: [NSLocalizedDescriptionKey: "You're not signed in."])
+        }
+        try await Firestore.firestore().collection("users").document(uid).delete()
+        try await Auth.auth().currentUser?.delete()
         self.userSession = nil
         self.currentUser = nil
     }

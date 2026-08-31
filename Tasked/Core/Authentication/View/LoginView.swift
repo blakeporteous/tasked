@@ -3,13 +3,16 @@
 //  Tasked
 //
 //  Created by Blake Porteous on 21/02/2025.
+//  Updated: "Forgot Password?" now opens a sheet that sends a real password
+//  reset email instead of just printing to the console.
 //
 
 import SwiftUI
 
 struct LoginView: View {
     @StateObject var viewModel = LoginViewModel()
-    
+    @State private var showForgotPassword = false
+
     var body: some View {
         NavigationStack{
             VStack{
@@ -41,7 +44,7 @@ struct LoginView: View {
                 }
                 
                 Button {
-                    print("Show forgot password")
+                    showForgotPassword = true
                 } label: {
                     Text("Forgot Password?")
                         .font(.footnote)
@@ -92,6 +95,9 @@ struct LoginView: View {
                 .padding(.vertical, 16)
 
             }
+        }
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView(viewModel: viewModel)
         }
     }
 }

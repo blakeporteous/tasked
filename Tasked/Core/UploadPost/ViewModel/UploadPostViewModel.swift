@@ -7,6 +7,11 @@
 //  active weekly task's title, denormalized onto the post at upload time so
 //  older posts keep the task that was active when they were shared (Feature 3).
 //  Also adds upload progress/error state for the redesigned Create Post screen (Feature 7).
+//  Updated (Crop pass): a picked photo no longer goes straight to postImage.
+//  It's held in `rawPickedImage` and routed through ImageCropperView first
+//  (presented by UploadPostView) so every post is a consistent, size-capped
+//  square instead of whatever raw resolution/aspect ratio the photo came in
+//  at — that's what was blowing up the feed layout.
 //
 
 import Foundation
@@ -21,6 +26,11 @@ class UploadPostViewModel: ObservableObject {
     @Published var selectedImage: PhotosPickerItem? {
         didSet { Task { await loadImage(fromItem: selectedImage) } }
     }
+    /// Freshly picked, not-yet-cropped photo. UploadPostView watches this to
+    /// know when to present the cropper.
+    @Published var rawPickedImage: UIImage?
+    @Published var showCropper = false
+
     @Published var postImage: Image?
     @Published var isUploading = false
     @Published var uploadProgress: Double = 0
@@ -47,14 +57,31 @@ class UploadPostViewModel: ObservableObject {
             errorMessage = "Couldn't load that image. Try a different one."
             return
         }
-        guard let uiImage = UIImage(data: data) else {
+        guard let picked = UIImage(data: data) else {
             errorMessage = "That file isn't a supported image."
             return
         }
 
-        self.uiImage = uiImage
-        self.postImage = Image(uiImage: uiImage)
-        self.errorMessage = nil
+        errorMessage = nil
+        rawPickedImage = picked
+        showCropper = true
+    }
+
+    /// Called by UploadPostView once the crop sheet is dismissed, either with
+    /// a finished square image or with nil if the user cancelled.
+    func handleCropped(_ cropped: UIImage?) {
+        rawPickedImage = nil
+        showCropper = false
+
+        guard let cropped else {
+            // Cancelled — clear the picker selection so choosing the same
+            // photo again still triggers a fresh load/crop.
+            selectedImage = nil
+            return
+        }
+
+        uiImage = cropped
+        postImage = Image(uiImage: cropped)
     }
 
     func uploadPost() async throws {
@@ -108,6 +135,8 @@ class UploadPostViewModel: ObservableObject {
         selectedImage = nil
         postImage = nil
         uiImage = nil
+        rawPickedImage = nil
+        showCropper = false
         uploadProgress = 0
     }
 }

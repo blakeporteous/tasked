@@ -1,3 +1,11 @@
+//
+//  CompleteSignUpView.swift
+//  Tasked
+//
+//  Updated: shows RegistrationViewModel.errorMessage (previously never rendered
+//  anywhere) and a loading state while the account is being created.
+//
+
 import SwiftUI
 
 struct CompleteSignUpView: View {
@@ -18,21 +26,35 @@ struct CompleteSignUpView: View {
                 .font(.footnote)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
+
+            if !viewModel.errorMessage.isEmpty {
+                Text(viewModel.errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
             
             Button {
-                // --- CORRECT: Task with a single closure, async usage inside it --
-                Task {
-                    try await viewModel.createUser()
-                }
+                Task { await viewModel.createUser() }
             } label: {
-                Text("Complete Sign Up")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .frame(width: 360, height: 44)
-                    .background(Color(.systemBlue))
-                    .cornerRadius(8)
+                if viewModel.isCreatingAccount {
+                    ProgressView()
+                        .tint(.white)
+                        .frame(width: 360, height: 44)
+                        .background(Color(.systemBlue))
+                        .cornerRadius(8)
+                } else {
+                    Text("Complete Sign Up")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .frame(width: 360, height: 44)
+                        .background(Color(.systemBlue))
+                        .cornerRadius(8)
+                }
             }
+            .disabled(viewModel.isCreatingAccount)
             .padding(.vertical)
             
             Spacer()
@@ -47,4 +69,9 @@ struct CompleteSignUpView: View {
             }
         }
     }
+}
+
+#Preview {
+    CompleteSignUpView()
+        .environmentObject(RegistrationViewModel())
 }

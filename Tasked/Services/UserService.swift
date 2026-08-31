@@ -5,6 +5,8 @@
 //  Created by Blake Porteous on 18/07/2025.
 //  Updated: added fetchUsers(withUids:) for batched lookups (used by the friend
 //  requests screen instead of one read per request).
+//  Updated: added isUsernameTaken(_:) for sign-up availability checks. Also
+//  dropped the leftover debug prints in searchUsers.
 //
 
 import Foundation
@@ -56,15 +58,23 @@ struct UserService {
             .limit(to: 25)
             .getDocuments()
 
-        print("SEARCH QUERY:", trimmed)
-        print("FOUND DOCUMENTS:", snapshot.documents.count)
-
-        for document in snapshot.documents {
-            print(document.data())
-        }
-
         return snapshot.documents.compactMap {
             try? $0.data(as: User.self)
         }
+    }
+
+    /// True if a user document already exists with this username (case-insensitive).
+    /// Used by RegistrationViewModel to block sign-up before a duplicate write is attempted.
+    static func isUsernameTaken(_ username: String) async throws -> Bool {
+        let trimmed = username.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !trimmed.isEmpty else { return false }
+
+        let snapshot = try await Firestore.firestore()
+            .collection("users")
+            .whereField("usernameLower", isEqualTo: trimmed)
+            .limit(to: 1)
+            .getDocuments()
+
+        return !snapshot.documents.isEmpty
     }
 }

@@ -9,6 +9,9 @@
 //  NOTE: uses scrollPosition/scrollTargetBehavior(.paging), which require iOS 17+.
 //  If the project's deployment target is earlier than iOS 17, this will need to be
 //  reworked (e.g. a rotated TabView(.page) as a fallback) — see summary notes.
+//  Updated (Feed engagement pass): FeedCell's profile row can navigate to a
+//  profile now, so this stack needs its own destination for User too (it has its
+//  own NavigationStack, separate from FeedView's).
 //
 
 import SwiftUI
@@ -49,6 +52,9 @@ struct PostFeedView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(for: User.self) { user in
+                ProfileView(user: user)
+            }
         }
     }
 }
