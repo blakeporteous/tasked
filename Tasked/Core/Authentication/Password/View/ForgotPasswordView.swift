@@ -3,6 +3,8 @@
 //  Tasked
 //
 //  New: sheet presented from LoginView's "Forgot Password?" button.
+//  Updated (Ink block pass): "Send Reset Link" now uses the shared
+//  inkButton() chrome.
 //
 
 import SwiftUI
@@ -21,7 +23,7 @@ struct ForgotPasswordView: View {
 
                 Text("Enter the email on your account and we'll send you a reset link")
                     .font(.footnote)
-                    .foregroundStyle(Color(.gray))
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
 
@@ -43,20 +45,14 @@ struct ForgotPasswordView: View {
                     if viewModel.isSendingReset {
                         ProgressView()
                             .tint(.white)
-                            .frame(width: 360, height: 44)
-                            .background(Color(.systemBlue))
-                            .cornerRadius(8)
+                            .inkButton()
                     } else {
                         Text("Send Reset Link")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white)
-                            .frame(width: 360, height: 44)
-                            .background(Color(.systemBlue))
-                            .cornerRadius(8)
+                            .inkButton()
                     }
                 }
                 .disabled(viewModel.isSendingReset)
+                .padding(.horizontal, 24)
                 .padding(.vertical)
 
                 Spacer()

@@ -3,6 +3,9 @@
 //  Tasked
 //
 //  Created by Blake Porteous on 22/04/2025.
+//  Updated (Email verification pass): now also mirrors
+//  AuthService.shared.isEmailVerified, so ContentView can gate MainTabView
+//  behind it without talking to AuthService directly.
 //
 
 import Foundation
@@ -17,6 +20,7 @@ class ContentViewModel: ObservableObject {
     
     @Published var userSession: FirebaseAuth.User?
     @Published var currentUser: User?
+    @Published var isEmailVerified: Bool = false
     
     init() {
         setupSubscribers()
@@ -30,6 +34,11 @@ class ContentViewModel: ObservableObject {
         
         service.$currentUser.sink { [weak self] currentUser in
             self?.currentUser = currentUser
+        }
+        .store(in: &cancellables)
+
+        service.$isEmailVerified.sink { [weak self] isEmailVerified in
+            self?.isEmailVerified = isEmailVerified
         }
         .store(in: &cancellables)
     }

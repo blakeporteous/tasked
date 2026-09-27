@@ -6,6 +6,11 @@
 //  "Recent Activity" placeholder section was removed because NotificationsView
 //  (reachable from the Feed bell) is the real home for that now, and having both
 //  screens claim the same territory was a duplicate navigation path.
+//  Updated (Live friend-requests pass): matched to ActivityViewModel's switch
+//  to a live listener — Retry now restarts the listener (startListening())
+//  rather than calling a one-shot fetch that no longer exists, and pull-to-
+//  refresh does the same (mostly redundant now that the list is live, but
+//  kept for the familiar "just in case" gesture).
 //
 
 import SwiftUI
@@ -25,7 +30,7 @@ struct ActivityView: View {
                         .foregroundStyle(.red)
                         .multilineTextAlignment(.center)
                     Button("Retry") {
-                        Task { await viewModel.fetchRequests() }
+                        viewModel.startListening()
                     }
                     .font(.footnote)
                 }
@@ -44,13 +49,13 @@ struct ActivityView: View {
                             Text(user.username)
                                 .fontWeight(.semibold)
                         } else {
-                            Circle()
+                            Rectangle()
                                 .fill(Color(.systemGray5))
                                 .frame(width: 40, height: 40)
                             Text("Someone")
                                 .foregroundStyle(.secondary)
                         }
-
+                        
                         Spacer()
 
                         Button("Accept") {
@@ -58,16 +63,18 @@ struct ActivityView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
+                        .fixedSize()
 
                         Button("Decline") {
                             Task { await viewModel.decline(request) }
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
+                        .fixedSize()
                     }
                 }
                 .listStyle(.plain)
-                .refreshable { await viewModel.fetchRequests() }
+                .refreshable { viewModel.startListening() }
             }
         }
         .navigationTitle("Friend Requests")

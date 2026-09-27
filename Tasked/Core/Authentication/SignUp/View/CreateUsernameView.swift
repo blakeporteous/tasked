@@ -5,6 +5,7 @@
 //  Created by Blake Porteous on 17/03/2025.
 //  Updated: checks username availability against Firestore while typing
 //  (debounced in RegistrationViewModel) and blocks "Next" until it's free.
+//  Updated (Ink block pass): "Next" now uses the shared inkButton() chrome.
 //
 
 import SwiftUI
@@ -22,7 +23,7 @@ struct CreateUsernameView: View {
             
             Text("You'll use this username to sign in to your account")
                 .font(.footnote)
-                .foregroundStyle(Color(.gray))
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
             
@@ -46,23 +47,14 @@ struct CreateUsernameView: View {
                 
                 } label: {
                     Text("Next")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .frame(width: 360, height: 44)
-                        .background(Color(.systemBlue))
-                        .cornerRadius(8)
+                        .inkButton()
                 }
+                .padding(.horizontal, 24)
                 .padding(.vertical)
             } else {
                 Text("Next")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .frame(width: 360, height: 44)
-                    .background(Color(.blue))
-                    .opacity(0.5)
-                    .cornerRadius(8)
+                    .inkButton(isDisabled: true)
+                    .padding(.horizontal, 24)
                     .padding(.vertical)
             }
             

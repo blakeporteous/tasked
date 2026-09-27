@@ -17,7 +17,7 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedIndex) {
 
-            FeedView()
+            FeedView(tabIndex: $selectedIndex)
                 .onAppear { selectedIndex = 0 }
                 .tabItem {
                     Image(systemName: "house")
@@ -41,7 +41,7 @@ struct MainTabView: View {
                     Image(systemName: "person")
                 }.tag(3)
         }
-        .accentColor(.black)
+        .accentColor(.primary)
     }
 }
 

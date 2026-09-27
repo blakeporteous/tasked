@@ -43,7 +43,7 @@ struct CurrentUserProfileView: View {
                         }
                     } label: {
                         Image(systemName: "line.3.horizontal")
-                            .foregroundStyle(.black)
+                            .foregroundStyle(.primary)
                     }
                 }
             }
@@ -52,6 +52,12 @@ struct CurrentUserProfileView: View {
             }
             .navigationDestination(isPresented: $showActivity) {
                 ActivityView()
+            }
+            .navigationDestination(for: User.self) { user in
+                ProfileView(user: user)
+            }
+            .navigationDestination(for: FriendsDestination.self) { destination in
+                FriendsView(user: destination.user)
             }
         }
     }

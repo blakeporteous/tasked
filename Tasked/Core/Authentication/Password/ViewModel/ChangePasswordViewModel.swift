@@ -3,6 +3,9 @@
 //  Tasked
 //
 //  New: backs ChangePasswordView, reachable from Settings > Account.
+//  Updated (Password policy pass): save() now validates newPassword against
+//  PasswordPolicy (mirrors the strict Firebase Auth console policy) instead
+//  of a flat 6-character minimum.
 //
 
 import Foundation
@@ -18,8 +21,8 @@ class ChangePasswordViewModel: ObservableObject {
     func save() async -> Bool {
         errorMessage = nil
 
-        guard newPassword.count >= 6 else {
-            errorMessage = "Password must be at least 6 characters."
+        guard PasswordPolicy.validate(newPassword).isValid else {
+            errorMessage = "Your new password doesn't meet the requirements yet."
             return false
         }
         guard newPassword == confirmPassword else {

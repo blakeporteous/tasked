@@ -3,6 +3,18 @@
 //  Tasked
 //
 //  Created by Blake Porteous on 17/03/2025.
+//  Updated (Ink block pass): "Next" now uses the shared inkButton() chrome.
+//  Updated (Password policy pass): now validates against PasswordPolicy
+//  (lowercase, uppercase, number, special character, minimum length) and
+//  shows the same live PasswordRequirementsView checklist as
+//  ChangePasswordView, instead of a flat "6 characters" check. Also added a
+//  "Confirm password" field — RegistrationViewModel already tracked
+//  confirmPassword, it just wasn't being collected here yet.
+//  Updated (Spacing pass): added breathing room between "Create a
+//  password" and the requirements checklist below it — everything was
+//  packed too tightly under the shared VStack's flat 12pt spacing.
+//  Updated (Public/private pass): "Next" now pushes to PublicPrivateView
+//  instead of going straight to CompleteSignUpView.
 //
 
 import SwiftUI
@@ -10,7 +22,15 @@ import SwiftUI
 struct CreatePasswordView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var viewModel: RegistrationViewModel
-    
+
+    private var passwordsMatch: Bool {
+        viewModel.password == viewModel.confirmPassword
+    }
+
+    private var isValid: Bool {
+        PasswordPolicy.validate(viewModel.password).isValid && passwordsMatch
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             Text("Create a password")
@@ -18,40 +38,47 @@ struct CreatePasswordView: View {
                 .fontWeight(.bold)
                 .padding(.top)
             
-            Text("Your password must be at least 6 characters in length")
+            Text("Choose a strong password to protect your account")
                 .font(.footnote)
-                .foregroundStyle(Color(.gray))
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
             
             SecureField("Password", text: $viewModel.password)
                 .modifier(IGTextFieldModifier())
                 .padding(.top)
+
+            SecureField("Confirm password", text: $viewModel.confirmPassword)
+                .modifier(IGTextFieldModifier())
+
+            PasswordRequirementsView(password: viewModel.password)
+                .padding(.top, 20)
+                .padding(.horizontal, 24)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if !viewModel.confirmPassword.isEmpty && !passwordsMatch {
+                Text("Passwords don't match.")
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 24)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
             
-            if !viewModel.password.isEmpty && viewModel.password.count >= 6 {
+            if isValid {
                 NavigationLink {
-                    CompleteSignUpView()
+                    PublicPrivateView()
                             .navigationBarBackButtonHidden()
                 
                 } label: {
                     Text("Next")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .frame(width: 360, height: 44)
-                        .background(Color(.systemBlue))
-                        .cornerRadius(8)
+                        .inkButton()
                 }
+                .padding(.horizontal, 24)
                 .padding(.vertical)
             } else {
                 Text("Next")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .frame(width: 360, height: 44)
-                    .background(Color(.blue))
-                    .opacity(0.5)
-                    .cornerRadius(8)
+                    .inkButton(isDisabled: true)
+                    .padding(.horizontal, 24)
                     .padding(.vertical)
             }
 

@@ -3,6 +3,12 @@
 //  Tasked
 //
 //  Created by Blake Porteous on 17/03/2025.
+//  Updated (Ink block pass): "Next" now uses the shared inkButton() chrome
+//  instead of a hand-rolled blue rounded rect.
+//  Updated (Stricter email pass): "Next" gate now uses
+//  RegistrationViewModel.isValidEmail (a real regex check) instead of just
+//  contains("@") && contains(".") — that loose check let obviously
+//  unfinished addresses like "test@gmail." through.
 //
 
 import SwiftUI
@@ -20,7 +26,7 @@ struct AddEmailView: View {
             
             Text("You'll use this email to sign in to your account")
                 .font(.footnote)
-                .foregroundStyle(Color(.gray))
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
             
@@ -28,30 +34,21 @@ struct AddEmailView: View {
                 .keyboardType(.emailAddress)
                 .modifier(IGTextFieldModifier())
                 
-            if !viewModel.email.isEmpty && viewModel.email.contains("@") && viewModel.email.contains("."){
+            if viewModel.isValidEmail {
                 NavigationLink {
                         CreateUsernameView()
                             .navigationBarBackButtonHidden()
                 
                 } label: {
                     Text("Next")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .frame(width: 360, height: 44)
-                        .background(Color(.systemBlue))
-                        .cornerRadius(8)
+                        .inkButton()
                 }
+                .padding(.horizontal, 24)
                 .padding(.vertical)
             } else {
                 Text("Next")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .frame(width: 360, height: 44)
-                    .background(Color(.blue))
-                    .opacity(0.5)
-                    .cornerRadius(8)
+                    .inkButton(isDisabled: true)
+                    .padding(.horizontal, 24)
                     .padding(.vertical)
             }
             

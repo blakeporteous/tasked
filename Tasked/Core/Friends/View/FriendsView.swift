@@ -3,10 +3,23 @@
 //  Tasked
 //
 //  New: reachable by tapping the Friends count on a profile. Lists every user
-//  in `user.friendUids` with picture, username, and full name.
+//  in `user.friendUids` with picture and username.
+//  Updated (Navigation-fix pass): FriendsDestination lets opening this
+//  screen ALSO be a value-based push, avoiding a known SwiftUI ghost-push
+//  bug from mixing boolean-flag and value-based NavigationLink styles on the
+//  same NavigationStack.
+//  Updated (Drop fullname pass): removed the fullname line under each
+//  friend's username — User no longer has a fullname field.
 //
 
 import SwiftUI
+
+/// Value-based navigation target for opening someone's Friends list.
+/// Deliberately its own type (not reusing User) so it can't collide with the
+/// existing `.navigationDestination(for: User.self)` used for profiles.
+struct FriendsDestination: Hashable {
+    let user: User
+}
 
 struct FriendsView: View {
     let user: User
@@ -37,21 +50,16 @@ struct FriendsView: View {
                     .padding(.top, 40)
             } else {
                 List(viewModel.friends) { friend in
-                    HStack(spacing: 12) {
-                        CircularProfileImageView(user: friend, size: .small)
+                    NavigationLink(value: friend) {
+                        HStack(spacing: 12) {
+                            CircularProfileImageView(user: friend, size: .small)
 
-                        VStack(alignment: .leading, spacing: 2) {
                             Text(friend.username)
                                 .fontWeight(.semibold)
-
-                            if let fullname = friend.fullname {
-                                Text(fullname)
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
                         }
+                        .padding(.vertical, 2)
                     }
-                    .padding(.vertical, 2)
+                    .foregroundStyle(.primary)
                 }
                 .listStyle(.plain)
             }

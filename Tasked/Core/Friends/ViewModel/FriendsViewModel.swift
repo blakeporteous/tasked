@@ -5,6 +5,9 @@
 //  New: backs FriendsView. Deliberately reuses UserService.fetchUsers(withUids:)
 //  rather than FriendService.fetchFriends(for:) to avoid having two code paths
 //  that do the same batched lookup.
+//  Updated (Deactivate account pass): filters out any friend who's currently
+//  deactivated — same "hidden while deactivated, reappears automatically on
+//  reactivation" behavior as search results and the feed.
 //
 
 import Foundation
@@ -21,7 +24,8 @@ class FriendsViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            friends = try await UserService.fetchUsers(withUids: user.friendUids)
+            let fetched = try await UserService.fetchUsers(withUids: user.friendUids)
+            friends = fetched.filter { !$0.isDeactivated }
         } catch {
             errorMessage = "Couldn't load friends: \(error.localizedDescription)"
         }

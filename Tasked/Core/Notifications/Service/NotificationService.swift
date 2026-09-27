@@ -8,6 +8,11 @@
 //  Updated (Feed engagement pass): added the "comment" notification type, fired
 //  from PostService.addComment alongside the existing "like" type fired from
 //  PostService.toggleLike.
+//  Updated (Notification settings + push): create(_:) now checks the
+//  recipient's NotificationPreferences before writing. If disabled, nothing
+//  is written — which means it never shows up in their bell/badge, and the
+//  sendPushNotification Cloud Function (which only fires off documents
+//  created here) never runs for it either. One gate, both effects.
 //
 
 import Foundation
@@ -27,6 +32,16 @@ struct NotificationService {
 
     static func create(recipientUid: String, actorUid: String, type: String, postId: String? = nil) async {
         guard recipientUid != actorUid else { return } // don't notify yourself
+
+        // Respect the recipient's notification preferences before writing
+        // anything. Fails open (still creates the notification) if the
+        // recipient's doc can't be fetched, since that's a much less bad
+        // outcome than silently dropping a real notification.
+        if let recipient = try? await UserService.fetchUser(withUid: recipientUid),
+           !recipient.notificationPreferences.isEnabled(for: type) {
+            return
+        }
+
         let ref = collection.document()
         var data: [String: Any] = [
             "id": ref.documentID,

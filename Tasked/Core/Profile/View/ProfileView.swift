@@ -19,7 +19,9 @@ struct ProfileView: View {
                 switch status {
                 case .friends, .isCurrentUser:
                     ScrollView {
-                        ProfileHeaderView(user: user)
+                        ProfileHeaderView(user: user) { newStatus in
+                            self.status = newStatus
+                        }
                         PostGridView(user: user)
                     }
                 case .notFriends, .requestSent, .requestReceived:

@@ -11,6 +11,7 @@
 		3BDD47D72D954A910011BA1B /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 3BDD47D62D954A910011BA1B /* FirebaseAuth */; };
 		3BDD47D92D954A910011BA1B /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 3BDD47D82D954A910011BA1B /* FirebaseFirestore */; };
 		3BDD47DB2D954A910011BA1B /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 3BDD47DA2D954A910011BA1B /* FirebaseStorage */; };
+		3BE1FDC63048CD7D0039C476 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 3BE1FDC53048CD7D0039C476 /* FirebaseMessaging */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +38,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3B10E0503067D88100CA74B6 /* Exceptions for "Tasked" folder in "InstagramTutorialTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Core/Feed/View/ShareableImage.swift,
+			);
+			target = 3BB74AA52D6729E9004E4AD6 /* InstagramTutorialTests */;
+		};
 		3BD558F92E7A24A800C5F0A5 /* Exceptions for "Tasked" folder in "Tasked" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -51,6 +59,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				3BD558F92E7A24A800C5F0A5 /* Exceptions for "Tasked" folder in "Tasked" target */,
+				3B10E0503067D88100CA74B6 /* Exceptions for "Tasked" folder in "InstagramTutorialTests" target */,
 			);
 			path = Tasked;
 			sourceTree = "<group>";
@@ -74,6 +83,7 @@
 			files = (
 				3BBCA79C2E4037FA0008324A /* Kingfisher in Frameworks */,
 				3BDD47D72D954A910011BA1B /* FirebaseAuth in Frameworks */,
+				3BE1FDC63048CD7D0039C476 /* FirebaseMessaging in Frameworks */,
 				3BDD47D92D954A910011BA1B /* FirebaseFirestore in Frameworks */,
 				3BDD47DB2D954A910011BA1B /* FirebaseStorage in Frameworks */,
 			);
@@ -148,6 +158,7 @@
 				3BDD47D82D954A910011BA1B /* FirebaseFirestore */,
 				3BDD47DA2D954A910011BA1B /* FirebaseStorage */,
 				3BBCA79B2E4037FA0008324A /* Kingfisher */,
+				3BE1FDC53048CD7D0039C476 /* FirebaseMessaging */,
 			);
 			productName = InstagramTutorial;
 			productReference = 3BB74A962D6729E6004E4AD6 /* Tasked.app */;
@@ -454,7 +465,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = BP.InstagramTutorial;
+				PRODUCT_BUNDLE_IDENTIFIER = BP.Tasked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -484,7 +495,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = BP.InstagramTutorial;
+				PRODUCT_BUNDLE_IDENTIFIER = BP.Tasked;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -640,6 +651,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3BDD47D52D954A910011BA1B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseStorage;
+		};
+		3BE1FDC53048CD7D0039C476 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3BDD47D52D954A910011BA1B /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

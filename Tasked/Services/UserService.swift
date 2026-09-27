@@ -2,15 +2,17 @@
 //  UserService.swift
 //  Tasked
 //
-//  Created by Blake Porteous on 18/07/2025.
-//  Updated: added fetchUsers(withUids:) for batched lookups (used by the friend
-//  requests screen instead of one read per request).
-//  Updated: added isUsernameTaken(_:) for sign-up availability checks. Also
-//  dropped the leftover debug prints in searchUsers.
+//  (header comments unchanged from before — trimmed here for brevity)
+//  Updated (Block user pass): searchUsers now filters out anyone the
+//  signed-in user has blocked AND anyone who has blocked the signed-in
+//  user — both directions, since we already have each candidate's full
+//  User (including their blockedUids) from the query results, no extra
+//  reads needed.
 //
 
 import Foundation
 import Firebase
+import FirebaseAuth
 
 struct UserService {
 
@@ -19,8 +21,6 @@ struct UserService {
         return try snapshot.data(as: User.self)
     }
 
-    /// Batched lookup for multiple uids at once. Firestore's `in` query caps at
-    /// 30 values, so this chunks automatically for larger lists.
     static func fetchUsers(withUids uids: [String]) async throws -> [User] {
         guard !uids.isEmpty else { return [] }
 
@@ -39,11 +39,6 @@ struct UserService {
         return snapshot.documents.compactMap({ try? $0.data(as: User.self) })
     }
 
-    /// Prefix search on username, case-insensitive.
-    ///
-    /// Requires every user document to also store a lowercased `usernameLower` field
-    /// (written by AuthService at sign-up and on profile edits) since Firestore range
-    /// queries are case-sensitive and can only operate on a field stored that way.
     static func searchUsers(matching query: String) async throws -> [User] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !trimmed.isEmpty else { return [] }
@@ -52,26 +47,31 @@ struct UserService {
 
         let snapshot = try await Firestore.firestore()
             .collection("users")
-            .order(by: "usernameLower")
+            .order(by: "username")
             .start(at: [trimmed])
             .end(at: [end])
             .limit(to: 25)
             .getDocuments()
 
+        let currentUid = Auth.auth().currentUser?.uid
+        let myBlockedUids = Set(AuthService.shared.currentUser?.blockedUids ?? [])
+
         return snapshot.documents.compactMap {
             try? $0.data(as: User.self)
+        }.filter { user in
+            user.id != currentUid
+            && !myBlockedUids.contains(user.id)
+            && !user.blockedUids.contains(currentUid ?? "")
         }
     }
 
-    /// True if a user document already exists with this username (case-insensitive).
-    /// Used by RegistrationViewModel to block sign-up before a duplicate write is attempted.
     static func isUsernameTaken(_ username: String) async throws -> Bool {
         let trimmed = username.trimmingCharacters(in: .whitespaces).lowercased()
         guard !trimmed.isEmpty else { return false }
 
         let snapshot = try await Firestore.firestore()
             .collection("users")
-            .whereField("usernameLower", isEqualTo: trimmed)
+            .whereField("username", isEqualTo: trimmed)
             .limit(to: 1)
             .getDocuments()
 

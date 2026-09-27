@@ -4,6 +4,11 @@
 //
 //  New in this pass (Feature 4). Named AppNotification (not Notification) to avoid
 //  colliding with Foundation's Notification type.
+//  Updated (Notifications-Accept pass): added timeAgo, a short, ROUNDED
+//  relative-time string shown on each row in NotificationsView.
+//  Updated (Comment likes + replies pass): timeAgo's bucket/rounding logic
+//  moved into the shared RelativeTime helper (Comment.timeAgo uses it too)
+//  — behavior is unchanged, just de-duplicated.
 //
 
 import Foundation
@@ -20,4 +25,11 @@ struct AppNotification: Identifiable, Codable, Hashable {
     var postId: String?
     var isRead: Bool
     let timestamp: Timestamp
+}
+
+extension AppNotification {
+    /// Short, ROUNDED "time ago" string — "5h", "1d", "2w".
+    var timeAgo: String {
+        RelativeTime.string(since: timestamp)
+    }
 }
